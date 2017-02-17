@@ -1,7 +1,7 @@
 # rxBasicDemo
 using Observable, Driver, ViewModel, Presenter
 
-#1:
+#1: Observable
     self.button.rx.tap
         .scan(0) { (previousValue,_) in
           return previousValue + 1
@@ -12,7 +12,7 @@ using Observable, Driver, ViewModel, Presenter
         }).addDisposableTo(disposeBag)
 
 
-#2:
+#2: Driver
     self.button.rx.tap
       .scan(0) { (previousValue,_) in
         return previousValue + 1
@@ -24,7 +24,7 @@ using Observable, Driver, ViewModel, Presenter
 
 
 
-#3:
+#3: ViewModel
     self.button.rx.tap
       .bindTo(viewModel.buttonTap)
       .addDisposableTo(disposeBag)
@@ -35,7 +35,7 @@ using Observable, Driver, ViewModel, Presenter
       }).addDisposableTo(disposeBag)
 
 
-#4:
+#4: Presenter
     self.presenter.count.asDriver(onErrorJustReturn: 0)
         .map { count in
             return "You have tapped that button \(count) times."
