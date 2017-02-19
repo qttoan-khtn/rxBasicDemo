@@ -10,80 +10,43 @@ import UIKit
 import RxSwift
 import RxCocoa
 
+
 class ViewController: UIViewController {
 
   @IBOutlet weak var label: UILabel!
   @IBOutlet weak var button: UIButton!
   let disposeBag = DisposeBag()
   
-  lazy var presenter: CounterPresenter = {
-    let provider = CounterProvider(buttonTap: self.button.rx.tap.asObservable())
-    return CounterPresenter(provider)
-  }()
+  var viewModel: PaginationViewModel<Repository>!
   
-  //let viewModel: ViewModel = ViewModel()
-  
-  //var count = 0 // using for traditional way
+  @IBOutlet weak var tableView: UITableView!
   
   override func viewDidLoad() {
     super.viewDidLoad()
     // Do any additional setup after loading the view, typically from a nib.
+    let networking = Networking.defaultNetworking()
+    self.viewModel = PaginationViewModel<Repository>(networking: networking)
     
-    //  #5: Presenter
-    self.presenter.count.asDriver(onErrorJustReturn: 0)
-        .map { count in
-            return "You have tapped that button \(count) times."
-        }.drive(self.label.rx.text)
-        .addDisposableTo(disposeBag)
+    viewModel.elements.asObservable()
+      .subscribe(onNext: { element in
+        print(element)
+      })
+      .addDisposableTo(disposeBag)
     
-    //  #4: Rx using viewmodel
-//    self.button.rx.tap
-//      .bindTo(viewModel.buttonTap)
-//      .addDisposableTo(disposeBag)
-//    
-//    self.viewModel.message.asObservable()
-//      .subscribe(onNext: {[unowned self] message in
-//        self.label.text = message
-//      }).addDisposableTo(disposeBag)
+    self.tableView.rx.contentOffset
+      .flatMap { _ in
+        self.tableView.contentOffset.y + self.tableView.frame.size.height + 20 > self.tableView.contentSize.height
+          ? Observable.just(())
+          : Observable.empty()
+    }.bindTo(viewModel.loadNextPageTrigger)
+    .addDisposableTo(disposeBag)
+
     
-    
-    
-    //  #3: Rx using driver
-//    self.button.rx.tap
-//      .scan(0) { (previousValue,_) in
-//        return previousValue + 1
-//      }.asDriver(onErrorJustReturn: 0)
-//      .map { count in
-//        return "You have tapped that button \(count) times."
-//      }.drive(self.label.rx.text)
-//      .addDisposableTo(disposeBag)
-    
-    
-    
-    //  #2: Rx using subscribe
-//    self.button.rx.tap
-//        .scan(0) { (previousValue,_) in
-//          return previousValue + 1
-//        }.map { count in
-//          return "You have tapped that button \(count) times."
-//        }.subscribe(onNext: { [unowned self] message in
-//          self.label.text = message
-//        }).addDisposableTo(disposeBag)
-    
-    
-    
-    //  #1: traditional way
-//    self.button.addTarget(self, action: #selector(buttonTap(_:)), for: .touchUpInside)
   }
 
   override func didReceiveMemoryWarning() {
     super.didReceiveMemoryWarning()
     // Dispose of any resources that can be recreated.
   }
-
-//  func buttonTap(_ sender: AnyObject) {
-//    count = count + 1
-//    self.label.text = "You have tapped that button \(count) times."
-//  }
 }
 
