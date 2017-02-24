@@ -15,6 +15,8 @@ class ViewController: UIViewController {
 
   @IBOutlet weak var label: UILabel!
   @IBOutlet weak var button: UIButton!
+  
+  var refreshControl : UIRefreshControl?
   let disposeBag = DisposeBag()
   
   var viewModel: PaginationViewModel<Repository>!
@@ -23,15 +25,17 @@ class ViewController: UIViewController {
   
   override func viewDidLoad() {
     super.viewDidLoad()
+    
     // Do any additional setup after loading the view, typically from a nib.
     let networking = Networking.defaultNetworking()
     self.viewModel = PaginationViewModel<Repository>(networking: networking)
     
     viewModel.elements.asObservable()
-      .subscribe(onNext: { element in
-        print(element)
-      })
-      .addDisposableTo(disposeBag)
+      .bindTo(self.tableView.rx.items){ (tableView, row, item) in
+        let cell = UITableViewCell(style: UITableViewCellStyle.default, reuseIdentifier: "reuseIdentifier")
+        cell.textLabel?.text = item.fullName
+        return cell
+      }.addDisposableTo(disposeBag)
     
     self.tableView.rx.contentOffset
       .flatMap { _ in
@@ -41,7 +45,30 @@ class ViewController: UIViewController {
     }.bindTo(viewModel.loadNextPageTrigger)
     .addDisposableTo(disposeBag)
 
+    self.refreshControl = UIRefreshControl()
     
+    if let refreshControl = self.refreshControl {
+      
+      self.tableView.addSubview(refreshControl)
+      
+    }
+    
+    self.refreshControl?.rx.controlEvent(UIControlEvents.valueChanged)
+      .bindTo(viewModel.refreshTrigger)
+      .addDisposableTo(disposeBag)
+    
+    viewModel.loading.asObservable()
+      .subscribe(onNext: { loading in
+        if loading {
+          self.refreshControl?.endRefreshing()
+        }
+      })
+      .addDisposableTo(disposeBag)
+    
+    rx.sentMessage(#selector(UIViewController.viewWillAppear(_:)))
+      .map{_ in} //   or asObservable
+      .bindTo(viewModel.refreshTrigger)
+      .addDisposableTo(disposeBag)
   }
 
   override func didReceiveMemoryWarning() {

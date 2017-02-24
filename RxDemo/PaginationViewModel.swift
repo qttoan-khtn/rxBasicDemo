@@ -87,7 +87,7 @@ class PaginationViewModel<Element: Decodable> where Element == Element.DecodedTy
 
   
   func fetchElements(page: Int) -> Observable<[Element]> {
-    return self.networking.provider.request(.repositories(query: "", page: page))
+    return self.networking.provider.request(.repositories(query: "swift", page: page))
                .mapArray(rootKey: "items")
   }
 }
