@@ -74,6 +74,10 @@ class ViewController: UIViewController {
     
     //  #1: traditional way
 //    self.button.addTarget(self, action: #selector(buttonTap(_:)), for: .touchUpInside)
+    
+    // git fow using
+    
+    // fix bug release
   }
 
   override func didReceiveMemoryWarning() {
