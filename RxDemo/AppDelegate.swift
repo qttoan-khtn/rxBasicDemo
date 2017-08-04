@@ -18,6 +18,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // Override point for customization after application launch.
     
     // git-flow: new features
+    
+    // git-flow: new features2
     return true
   }
 
